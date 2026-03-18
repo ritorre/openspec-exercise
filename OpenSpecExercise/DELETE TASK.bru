@@ -1,0 +1,15 @@
+meta {
+  name: DELETE TASK
+  type: http
+  seq: 3
+}
+
+delete {
+  url: http://localhost:3000/tasks/1
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: false
+}
