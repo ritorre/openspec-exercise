@@ -5,6 +5,22 @@ const PORT = 3000;
 // Middleware
 app.use(express.json());
 
+// Response helpers
+function ok(res, data, status = 200) {
+  res.status(status).json({ success: true, data });
+}
+function badRequest(res, error) {
+  res.status(400).json({ success: false, error });
+}
+function notFound(res, error) {
+  res.status(404).json({ success: false, error });
+}
+
+// Task lookup helper
+function findTask(id) {
+  return tasks.find(task => task.id === id);
+}
+
 // In-memory task storage
 let tasks = [
   { id: 1, title: 'Aprender OpenSpec', completed: false },
@@ -16,11 +32,7 @@ let nextId = 4;
 
 // GET /tasks - List all tasks
 app.get('/tasks', (req, res) => {
-  res.json({
-    success: true,
-    count: tasks.length,
-    data: tasks
-  });
+  res.json({ success: true, count: tasks.length, data: tasks });
 });
 
 // POST /tasks - Create a new task
@@ -28,10 +40,7 @@ app.post('/tasks', (req, res) => {
   const { title } = req.body;
 
   if (!title) {
-    return res.status(400).json({
-      success: false,
-      error: 'Title is required'
-    });
+    return badRequest(res, 'Title is required');
   }
 
   const newTask = {
@@ -43,30 +52,21 @@ app.post('/tasks', (req, res) => {
 
   tasks.push(newTask);
 
-  res.status(201).json({
-    success: true,
-    data: newTask
-  });
+  ok(res, newTask, 201);
 });
 
 // DELETE /tasks/:id - Delete a task
 app.delete('/tasks/:id', (req, res) => {
   const id = parseInt(req.params.id);
-  const taskIndex = tasks.findIndex(task => task.id === id);
+  const task = findTask(id);
 
-  if (taskIndex === -1) {
-    return res.status(404).json({
-      success: false,
-      error: 'Task not found'
-    });
+  if (!task) {
+    return notFound(res, 'Task not found');
   }
 
-  const deletedTask = tasks.splice(taskIndex, 1)[0];
+  tasks.splice(tasks.indexOf(task), 1);
 
-  res.json({
-    success: true,
-    data: deletedTask
-  });
+  ok(res, task);
 });
 
 // Start server
